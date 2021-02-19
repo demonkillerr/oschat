@@ -11,14 +11,14 @@ from the tchat directory where you have cloned this repository into. That is, if
 <code>cd tchat && npm run dev</code>
 
 While socket is running, open your web browser and type in: <code>localhost:3000</code>
- This will open an instance of the chat application. This application can be run on various devices across various platforms, only condition is they have to be on the same network. (You only need npm running on host machine. All others just need to connect to localhost:3000). You can connect from Windows, any UNIX systems like stated above, as well as android.
+This will open an instance of the chat application. This application can be run on various devices across various platforms, only condition is they have to be on the same network. (You only need npm running on host machine. All others just need to connect to localhost:3000). You can connect from Windows, any UNIX systems like stated above, as well as android.
 
 NOTE - If you are cloning this on Windows, please see that you have NodeJS installed. On Windows, get VS Code, that simplifies alot of things.
 
 <p>
 NOTE - 2: Yes, DB is absent, so your chat is only present till you have the window open. If anyone is intrested in integrating any DB (I prefer MariaDB but we are learning SQL this sem), please feel free to contact me, I'll add it.
 
-NOTE - 3: This is my personnal repo meant for learning. I created this for learnign git, and other important stuff. You will not find anything intresting here, apart from some college level projects. For seeing my active projects, visit links below:
+NOTE - 3: This is my personnal repo meant for learning. I created this for learning git, and other important stuff. You will not find anything interesting here, apart from some college level projects. For seeing my active projects, visit links below:
 
 Demonkiller's Main Projects: <br>
 TOS: github.com/thakuros <br>
