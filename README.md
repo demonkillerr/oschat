@@ -15,6 +15,11 @@ This will open an instance of the chat application. This application can be run 
 
 NOTE - If you are cloning this on Windows, please see that you have NodeJS installed. On Windows, get VS Code, that simplifies alot of things.
 
+<img src="tchat-ss.png">
+<br>
+View from other chat member's screen:
+<img src="tchat-ss2.png">
+
 <p>
 NOTE - 2: Yes, DB is absent, so your chat is only present till you have the window open. If anyone is intrested in integrating any DB (I prefer MariaDB but we are learning SQL this sem), please feel free to contact me, I'll add it.
 
