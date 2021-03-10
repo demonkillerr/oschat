@@ -1,6 +1,6 @@
 # TCHAT - Realtime Socket.io Chat Application
 
-<b>TCHAT</b> or Thakur Chat (named after my college TCET, to impress my tecahers), is a simple realtime web chat application developed in <b>C-H.E.N</b> stack (CSS, HTML, ExpressJS and Node JS). It uses a powerful node library called <em>socket.io</em>. This project was for ESD-1, conducted in SEM-3.
+<b>TCHAT</b> or Thakur Chat (named after my college TCET, to impress my teachers), is a simple realtime web chat application developed in <b>C-H.E.N</b> stack (CSS, HTML, ExpressJS and Node JS). It uses a powerful Node library called <em>socket.io</em>. This project was for ESD-1, conducted in SEM-3.
 
 You need to install Node JS on your computer. For UNIX based systems (Linux, MACOS, BSD, Solaris), run the command 
 
