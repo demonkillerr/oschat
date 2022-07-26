@@ -25,7 +25,3 @@ NOTE - 2: Yes, DB is absent, so your chat is only present till you have the wind
 
 NOTE - 3: This is my personnal repo meant for learning. I created this for learning git, and other important stuff. You will not find anything interesting here, apart from some college level projects. For seeing my active projects, visit links below:
 
-Demonkiller's Main Projects: <br>
-TOS: github.com/thakuros <br>
-ALG: github.com/arch-linux-gui 
-</p>
