@@ -19,9 +19,3 @@ NOTE - If you are cloning this on Windows, please see that you have NodeJS insta
 <br>
 View from other chat member's screen:
 <img src="tchat-ss2.png">
-
-<p>
-NOTE - 2: Yes, DB is absent, so your chat is only present till you have the window open. If anyone is intrested in integrating any DB (I prefer MariaDB but we are learning SQL this sem), please feel free to contact me, I'll add it.
-
-NOTE - 3: This is my personnal repo meant for learning. I created this for learning git, and other important stuff. You will not find anything interesting here, apart from some college level projects. For seeing my active projects, visit links below:
-
