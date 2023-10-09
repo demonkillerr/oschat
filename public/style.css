@@ -46,6 +46,7 @@ textarea {
     font-size: 16px;
     outline: none;
     background: #FBFBFB;
+    resize: none;
 }
 
 .message {

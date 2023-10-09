@@ -2,9 +2,16 @@ const socket = io()
 let name;
 let textarea = document.querySelector('#textarea')
 let messageArea = document.querySelector('.message__area')
-do {
-    name = prompt('Please enter your name: ')
-} while(!name)
+
+if(localStorage.getItem('user')){
+    name = localStorage.getItem('user')
+    socket.emit("user", name)
+} else {
+    do {
+        name = prompt('Please enter your name: ')
+        localStorage.setItem('user', name)
+    } while(!name)
+}
 
 textarea.addEventListener('keyup', (e) => {
     if(e.key === 'Enter') {
