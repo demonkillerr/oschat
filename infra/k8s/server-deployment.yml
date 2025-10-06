@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oschat-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oschat-server
+  template:
+    metadata:
+      labels:
+        app: oschat-server
+    spec:
+      containers:
+        - name: server
+          image: oschat-server:latest
+          ports:
+            - containerPort: 4000
+
