@@ -8,9 +8,15 @@ export default function HelloSocket() {
 
   useEffect(() => {
     const s = getSocket();
+    const onConnect = () => setMessage('Connected');
+    const onConnectError = (err: unknown) => setMessage(`Connect error: ${String((err as any)?.message || err)}`);
     const onHello = (payload: { message: string }) => setMessage(payload.message);
+    s.on('connect', onConnect);
+    s.on('connect_error', onConnectError);
     s.on(socketEvents.Hello, onHello);
     return () => {
+      s.off('connect', onConnect);
+      s.off('connect_error', onConnectError);
       s.off(socketEvents.Hello, onHello);
     };
   }, []);
