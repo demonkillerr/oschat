@@ -25,6 +25,11 @@ export default function Chat() {
     };
   }, [socket]);
 
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? window.localStorage.getItem('oschat.user') : null;
+    if (saved) setUser(saved);
+  }, []);
+
   function send() {
     const trimmed = text.trim();
     if (!trimmed) return;
@@ -36,19 +41,34 @@ export default function Chat() {
     if (e.key === 'Enter') send();
   }
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('oschat.user', user);
+    }
+  }, [user]);
+
+  const canSend = text.trim().length > 0;
+
   return (
-    <div style={{ display: 'grid', gap: 12, maxWidth: 600 }}>
-      <div style={{ display: 'flex', gap: 8 }}>
+    <div className="chat-container">
+      <div className="chat-toolbar">
         <input value={user} onChange={(e) => setUser(e.target.value)} placeholder="name" style={{ flex: '0 0 160px' }} />
         <input value={text} onKeyDown={onKey} onChange={(e) => setText(e.target.value)} placeholder="type a message" style={{ flex: 1 }} />
-        <button onClick={send}>Send</button>
+        <button onClick={send} disabled={!canSend}>Send</button>
       </div>
-      <div ref={listRef} style={{ border: '1px solid #444', padding: 12, borderRadius: 8, height: 300, overflowY: 'auto' }}>
-        {messages.map((m) => (
-          <div key={m.id} style={{ marginBottom: 8 }}>
-            <strong>{m.user}</strong>: {m.text}
-          </div>
-        ))}
+      <div ref={listRef} className="chat-list">
+        {messages.map((m) => {
+          const me = m.user === user;
+          const time = new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          return (
+            <div key={m.id} className={`chat-row ${me ? 'me' : ''}`}>
+              <div className={`bubble ${me ? 'me' : 'other'}`}>
+                <span className="meta">{m.user} • {time}</span>
+                <span>{m.text}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
