@@ -1,20 +1,19 @@
 {
-  "name": "tchat",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "oschat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Realtime chat app - monorepo (Next.js + Express + Socket.io)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "nodemon server",
-    "serve": "node server"
+    "dev": "npm run -w apps/web dev & npm run -w apps/server dev",
+    "build": "npm run -w apps/web build && npm run -w apps/server build",
+    "start": "npm run -w apps/server start",
+    "lint": "echo 'no lints yet'",
+    "typecheck": "echo 'no types yet'"
   },
-  "keywords": [],
   "author": "demonkiller",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^2.5.0"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.22"
-  }
+  "license": "ISC"
 }
