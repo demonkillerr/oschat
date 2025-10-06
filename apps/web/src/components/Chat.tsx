@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getSocket } from '../lib/socket';
 import { socketEvents } from '@oschat/shared';
+import { useEffectOnce } from '../hooks/useEffectOnce';
 
 type Message = { id: string; user: string; text: string; ts: number };
 
@@ -16,14 +17,19 @@ export default function Chat() {
   useEffect(() => {
     const onNew = (msg: Message) => {
       setMessages((prev) => [...prev, msg]);
-      // scroll to bottom
       setTimeout(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' }), 0);
     };
     socket.on(socketEvents.ChatNew, onNew);
-    return () => {
-      socket.off(socketEvents.ChatNew, onNew);
-    };
+    return () => { socket.off(socketEvents.ChatNew, onNew); };
   }, [socket]);
+
+  useEffect(() => {
+    // fetch recent messages from server
+    fetch('/api/messages?limit=50')
+      .then((r) => r.ok ? r.json() : [])
+      .then((items: Message[]) => setMessages(items))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? window.localStorage.getItem('oschat.user') : null;

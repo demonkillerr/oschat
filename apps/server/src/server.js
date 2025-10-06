@@ -2,6 +2,8 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import app from './app.js';
 import { socketEvents, createMessage } from '../../../packages/shared/src/index.js';
+import { connectMongo } from './config/db.js';
+import { Message } from './models/Message.js';
 
 const port = process.env.PORT || 4000;
 const server = http.createServer(app);
@@ -20,6 +22,8 @@ io.on('connection', (socket) => {
   socket.on(socketEvents.ChatSend, (payload) => {
     const msg = createMessage({ user: payload?.user || 'anon', text: payload?.text || '' });
     io.emit(socketEvents.ChatNew, msg);
+    // persist best-effort if DB is connected
+    Message.create(msg).catch(() => {});
   });
   socket.on('disconnect', (reason) => {
     // eslint-disable-next-line no-console
@@ -27,8 +31,9 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(port, () => {
+server.listen(port, async () => {
   // eslint-disable-next-line no-console
   console.log(`server listening on :${port}`);
+  await connectMongo();
 });
 
