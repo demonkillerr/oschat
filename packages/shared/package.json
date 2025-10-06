@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "main": "src/index.js",
-  "type": "module"
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  }
 }
 
