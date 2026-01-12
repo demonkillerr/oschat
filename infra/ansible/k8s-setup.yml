@@ -1,0 +1,124 @@
+---
+- name: Setup Kubernetes Cluster for OSChat
+  hosts: k8s_masters
+  become: yes
+  vars:
+    k8s_version: "1.28"
+    pod_network_cidr: "10.244.0.0/16"
+    
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+    
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - software-properties-common
+        state: present
+      when: ansible_os_family == "Debian"
+    
+    - name: Add Kubernetes apt key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+      when: ansible_os_family == "Debian"
+    
+    - name: Add Kubernetes apt repository
+      apt_repository:
+        repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+        state: present
+      when: ansible_os_family == "Debian"
+    
+    - name: Install Kubernetes packages
+      apt:
+        name:
+          - kubelet={{ k8s_version }}.*
+          - kubeadm={{ k8s_version }}.*
+          - kubectl={{ k8s_version }}.*
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: Hold Kubernetes packages
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+      when: ansible_os_family == "Debian"
+    
+    - name: Disable swap
+      command: swapoff -a
+      changed_when: false
+    
+    - name: Remove swap from fstab
+      lineinfile:
+        path: /etc/fstab
+        regexp: '^.*swap.*$'
+        state: absent
+    
+    - name: Load kernel modules
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - overlay
+        - br_netfilter
+    
+    - name: Set sysctl parameters
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: yes
+      loop:
+        - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+        - { name: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+        - { name: 'net.ipv4.ip_forward', value: '1' }
+    
+    - name: Initialize Kubernetes cluster
+      command: kubeadm init --pod-network-cidr={{ pod_network_cidr }}
+      register: kubeadm_init
+      changed_when: "'kubeadm join' in kubeadm_init.stdout"
+      failed_when: kubeadm_init.rc != 0 and 'already exists' not in kubeadm_init.stderr
+    
+    - name: Create .kube directory
+      file:
+        path: /root/.kube
+        state: directory
+        mode: 0755
+    
+    - name: Copy kubeconfig
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /root/.kube/config
+        remote_src: yes
+        owner: root
+        group: root
+        mode: 0644
+    
+    - name: Install Calico network plugin
+      command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+      changed_when: false
+    
+    - name: Install NGINX Ingress Controller
+      command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+      changed_when: false
+    
+    - name: Install cert-manager
+      command: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+      changed_when: false
+    
+    - name: Wait for cert-manager to be ready
+      command: kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment/cert-manager
+      changed_when: false

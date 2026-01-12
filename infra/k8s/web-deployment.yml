@@ -2,8 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: oschat-web
+  namespace: oschat
+  labels:
+    app: oschat-web
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: oschat-web
@@ -13,8 +16,80 @@ spec:
         app: oschat-web
     spec:
       containers:
-        - name: web
-          image: oschat-web:latest
-          ports:
-            - containerPort: 3000
+      - name: web
+        image: oschat-web:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          value: "https://api.oschat.example.com"
+        - name: NEXT_PUBLIC_SOCKET_URL
+          value: "https://api.oschat.example.com"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oschat-web
+  namespace: oschat
+  labels:
+    app: oschat-web
+spec:
+  type: ClusterIP
+  selector:
+    app: oschat-web
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: oschat-web-hpa
+  namespace: oschat
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: oschat-web
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
 

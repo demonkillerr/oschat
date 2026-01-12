@@ -1,0 +1,105 @@
+---
+- name: Deploy OSChat Application
+  hosts: localhost
+  connection: local
+  vars:
+    namespace: oschat
+    kubeconfig_path: "{{ lookup('env', 'KUBECONFIG') | default('~/.kube/config', true) }}"
+    
+  tasks:
+    - name: Create namespace
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ namespace }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+    
+    - name: Apply ConfigMap
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s/configmap.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
+    
+    - name: Apply Secrets
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s/configmap.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
+      no_log: true
+    
+    - name: Deploy MongoDB
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s/mongodb-deployment.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
+    
+    - name: Wait for MongoDB to be ready
+      kubernetes.core.k8s_info:
+        kind: StatefulSet
+        namespace: "{{ namespace }}"
+        name: mongodb
+        kubeconfig: "{{ kubeconfig_path }}"
+      register: mongodb_status
+      until: mongodb_status.resources[0].status.readyReplicas | default(0) >= 1
+      retries: 30
+      delay: 10
+    
+    - name: Deploy Server
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s/server-deployment.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
+    
+    - name: Deploy Web
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s/web-deployment.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
+    
+    - name: Apply Ingress
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s/ingress.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
+    
+    - name: Wait for Server deployment to be ready
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: "{{ namespace }}"
+        name: oschat-server
+        kubeconfig: "{{ kubeconfig_path }}"
+      register: server_status
+      until: server_status.resources[0].status.readyReplicas | default(0) >= 1
+      retries: 30
+      delay: 10
+    
+    - name: Wait for Web deployment to be ready
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: "{{ namespace }}"
+        name: oschat-web
+        kubeconfig: "{{ kubeconfig_path }}"
+      register: web_status
+      until: web_status.resources[0].status.readyReplicas | default(0) >= 1
+      retries: 30
+      delay: 10
+    
+    - name: Get Ingress information
+      kubernetes.core.k8s_info:
+        kind: Ingress
+        namespace: "{{ namespace }}"
+        name: oschat-ingress
+        kubeconfig: "{{ kubeconfig_path }}"
+      register: ingress_info
+    
+    - name: Display deployment information
+      debug:
+        msg:
+          - "OSChat has been deployed successfully!"
+          - "Namespace: {{ namespace }}"
+          - "Server replicas: {{ server_status.resources[0].status.readyReplicas }}"
+          - "Web replicas: {{ web_status.resources[0].status.readyReplicas }}"
+          - "Ingress: {{ ingress_info.resources[0].status.loadBalancer.ingress | default('Pending') }}"

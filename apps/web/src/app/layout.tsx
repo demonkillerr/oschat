@@ -1,15 +1,20 @@
 import React from 'react';
 import './globals.css';
+import { AuthProvider } from '../contexts/AuthContext';
 
 export const metadata = {
-  title: 'oschat',
-  description: 'Realtime chat app',
+  title: 'OSChat - Modern Chat Application',
+  description: 'Realtime chat application with Next.js and Socket.io',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

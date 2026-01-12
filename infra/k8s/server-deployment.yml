@@ -2,8 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: oschat-server
+  namespace: oschat
+  labels:
+    app: oschat-server
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: oschat-server
@@ -13,8 +16,125 @@ spec:
         app: oschat-server
     spec:
       containers:
-        - name: server
-          image: oschat-server:latest
-          ports:
-            - containerPort: 4000
+      - name: server
+        image: oschat-server:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4000
+          name: http
+        env:
+        - name: PORT
+          value: "4000"
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: oschat-config
+              key: NODE_ENV
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: oschat-secrets
+              key: MONGODB_URI
+        - name: MONGODB_DB
+          valueFrom:
+            configMapKeyRef:
+              name: oschat-config
+              key: MONGODB_DB
+        - name: WEB_ORIGIN
+          valueFrom:
+            configMapKeyRef:
+              name: oschat-config
+              key: WEB_ORIGIN
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oschat-secrets
+              key: JWT_SECRET
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oschat-secrets
+              key: SESSION_SECRET
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: oschat-secrets
+              key: GOOGLE_CLIENT_ID
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oschat-secrets
+              key: GOOGLE_CLIENT_SECRET
+        - name: GOOGLE_CALLBACK_URL
+          valueFrom:
+            secretKeyRef:
+              name: oschat-secrets
+              key: GOOGLE_CALLBACK_URL
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oschat-server
+  namespace: oschat
+  labels:
+    app: oschat-server
+spec:
+  type: ClusterIP
+  selector:
+    app: oschat-server
+  ports:
+  - port: 4000
+    targetPort: 4000
+    protocol: TCP
+    name: http
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: oschat-server-hpa
+  namespace: oschat
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: oschat-server
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
 
