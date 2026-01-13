@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [main, revamp]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  lint-and-typecheck-server:
+    name: Lint & Typecheck (Server)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/server
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+  lint-and-typecheck-web:
+    name: Lint & Typecheck (Web)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+  test-server:
+    name: Test (Server)
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck-server
+    defaults:
+      run:
+        working-directory: apps/server
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: oschat
+          POSTGRES_PASSWORD: oschat
+          POSTGRES_DB: oschat_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://oschat:oschat@localhost:5432/oschat_test?schema=public
+      JWT_SECRET: test-jwt-secret-minimum-32-characters-long
+      GOOGLE_CLIENT_ID: test-client-id
+      GOOGLE_CLIENT_SECRET: test-client-secret
+      GOOGLE_CALLBACK_URL: http://localhost:4000/auth/google/callback
+      FRONTEND_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+
+      - name: Run tests
+        run: npm run test
+
+  build-server:
+    name: Build Server Docker Image
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck-server, test-server]
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/server
+          file: ./apps/server/Dockerfile
+          push: false
+          tags: oschat-server:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-web:
+    name: Build Web Docker Image
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck-web
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/web
+          file: ./apps/web/Dockerfile
+          push: false
+          tags: oschat-web:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:4000
+            NEXT_PUBLIC_WS_URL=http://localhost:4000
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
