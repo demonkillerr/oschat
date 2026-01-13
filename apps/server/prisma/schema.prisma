@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  googleSub String   @unique @map("google_sub")
+  email     String   @unique
+  name      String
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  memberships ConversationMember[]
+  messages    Message[]
+
+  @@map("users")
+}
+
+enum ConversationType {
+  dm
+  group
+}
+
+model Conversation {
+  id        String           @id @default(uuid())
+  type      ConversationType
+  title     String?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  members  ConversationMember[]
+  messages Message[]
+
+  @@map("conversations")
+}
+
+enum MemberRole {
+  owner
+  admin
+  member
+}
+
+model ConversationMember {
+  id             String     @id @default(uuid())
+  conversationId String     @map("conversation_id")
+  userId         String     @map("user_id")
+  role           MemberRole @default(member)
+  joinedAt       DateTime   @default(now()) @map("joined_at")
+  lastSeenAt     DateTime?  @map("last_seen_at")
+  lastSeenMsgId  String?    @map("last_seen_msg_id")
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastSeenMsg  Message?     @relation("LastSeenMessage", fields: [lastSeenMsgId], references: [id])
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_members")
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  senderId       String   @map("sender_id")
+  clientMsgId    String   @map("client_msg_id")
+  body           String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  conversation Conversation         @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User                 @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  seenBy       ConversationMember[] @relation("LastSeenMessage")
+
+  // Unique constraint for idempotency
+  @@unique([senderId, clientMsgId])
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
