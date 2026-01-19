@@ -1,6 +1,6 @@
 {
-  "name": "chat-app",
-  "version": "1.0.0",
+  "name": "oschat",
+  "version": "0.1.2",
   "private": true,
   "workspaces": [
     "apps/*",
