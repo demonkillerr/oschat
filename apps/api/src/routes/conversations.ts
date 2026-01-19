@@ -238,7 +238,6 @@ const conversationRoutes: FastifyPluginAsync = async (fastify) => {
         conversationId: id,
         userId,
       })),
-      skipDuplicates: true,
     });
 
     const updatedConversation = await fastify.prisma.conversation.findUnique({

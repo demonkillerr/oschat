@@ -80,7 +80,6 @@ const messageRoutes: FastifyPluginAsync = async (fastify) => {
         messageId,
         userId: decoded.userId,
       })),
-      skipDuplicates: true,
     });
 
     reply.send({ success: true });
