@@ -1,6 +1,4 @@
-"use client";
-
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useChatStore } from "./store";
 import type { Message, TypingIndicator } from "@chat/types";
@@ -17,13 +15,12 @@ const SocketContext = createContext<SocketContextType>({
 
 export const useSocket = () => useContext(SocketContext);
 
-export function SocketProvider({ children }: { children: React.ReactNode }) {
+export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   
   const { 
     addMessage,
-    incrementUnread,
     updateConversationLastMessage,
     setUserOnline, 
     setUserOffline, 
@@ -89,4 +86,4 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       {children}
     </SocketContext.Provider>
   );
-}
+};
