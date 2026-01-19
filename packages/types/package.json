@@ -1,0 +1,13 @@
+{
+  "name": "@chat/types",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "lint": "echo 'No linting configured'"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
