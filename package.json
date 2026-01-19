@@ -1,20 +1,23 @@
 {
-  "name": "tchat",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "oschat",
+  "version": "0.1.2",
+  "private": true,
+  "packageManager": "npm@10.2.4",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "nodemon server",
-    "serve": "node server"
-  },
-  "keywords": [],
-  "author": "demonkiller",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^2.5.0"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "db:generate": "cd apps/api && npx prisma generate",
+    "db:push": "cd apps/api && npx prisma db push",
+    "db:studio": "cd apps/api && npx prisma studio"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
   }
 }

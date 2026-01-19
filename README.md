@@ -1,26 +1,88 @@
-# TCHAT - Realtime Socket.io Chat Application
+# OSChat Application
 
-**TCHAT** or Thakur Chat (named after my college TCET, to impress my teachers), is a simple realtime web chat application developed in **C-H.E.N** stack (CSS, HTML, ExpressJS and Node JS). It uses a powerful Node library called _socket.io_. This project was for ESD-1, conducted in SEM-3.
+OSChat is a real-time bidirectional chat application with 1:1 and group chat support.
 
-You need to install Node JS on your computer. For UNIX based systems (Linux, MACOS, BSD, Solaris), run the command
+## Tech Stack
 
-```sh
-npm run dev
+- **Frontend**: Next.js 14, Tailwind CSS, Shadcn UI
+- **Backend**: Fastify, Socket.io
+- **Database**: SQLite with Prisma
+- **Authentication**: Google OAuth 2.0
+- **Monorepo**: Turborepo
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Generate Prisma client
+npm db:generate
+
+# Push database schema
+npm db:push
+
+# Run development servers
+npm dev
 ```
 
-from the tchat directory where you have cloned this repository into. That is, if you clone it in say downloads, then
+### Environment Variables
 
-```sh
-cd tchat && npm run dev
+Create `.env` files in `apps/web` and `apps/api`:
+
+**apps/web/.env.local**:
+```
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
 ```
 
-While socket is running, open your web browser and type in: `localhost:3000`
-This will open an instance of the chat application. This application can be run on various devices across various platforms, only condition is they have to be on the same network. (You only need npm running on host machine. All others just need to connect to localhost:3000). You can connect from Windows, any UNIX systems like stated above, as well as android.
+**apps/api/.env**:
+```
+DATABASE_URL="file:./dev.db"
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
+JWT_SECRET=your-jwt-secret
+FRONTEND_URL=http://localhost:3000
+PORT=3001
+```
 
-NOTE - If you are cloning this on Windows, please see that you have NodeJS installed. On Windows, get VS Code, that simplifies alot of things.
+## Project Structure
 
-![tchat-ss](assets/tchat-ss.png)
+```
+oschat/
+├── apps/
+│   ├── web/          # Next.js frontend
+│   └── api/          # Fastify backend
+├── packages/
+│   ├── types/        # Shared TypeScript types
+│   └── ui/           # Shadcn components
+└── turbo.json        # Turborepo configuration
+```
 
-View from other chat member's screen:
+## Features
 
-![tchat-ss2](assets/tchat-ss2.png)
+- Google OAuth authentication
+- 1:1 direct messaging
+- Group chats
+- Real-time message delivery
+- Typing indicators
+- Online/offline status
+- Read receipts
+- Message history
+
+
+
+## Development
+
+- `npm dev` - Run all apps in development mode
+- `npm build` - Build all apps
+- `npm lint` - Lint all apps
+- `npm db:studio` - Open Prisma Studio
