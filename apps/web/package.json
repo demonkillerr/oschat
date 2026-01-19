@@ -25,7 +25,9 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "date-fns": "^4.1.0",
-    "zustand": "^5.0.2"
+    "zustand": "^5.0.2",
+    "@chat/types": "*",
+    "@chat/ui": "*"
   },
   "devDependencies": {
     "@types/node": "^22",
