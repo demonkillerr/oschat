@@ -1,40 +1,22 @@
 {
-  "name": "oschat",
-  "version": "2.0.0",
-  "description": "Real-time chat application with TypeScript, Next.js, and Fastify",
+  "name": "chat-app",
+  "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
-    "dev:server": "npm run dev -w @oschat/server",
-    "dev:web": "npm run dev -w @oschat/web",
-    "build": "npm run build -w @oschat/server && npm run build -w @oschat/web",
-    "build:server": "npm run build -w @oschat/server",
-    "build:web": "npm run build -w @oschat/web",
-    "start:server": "npm run start -w @oschat/server",
-    "start:web": "npm run start -w @oschat/web",
-    "lint": "npm run lint -w @oschat/server && npm run lint -w @oschat/web",
-    "typecheck": "npm run typecheck -w @oschat/server && npm run typecheck -w @oschat/web",
-    "test": "npm run test -w @oschat/server",
-    "db:generate": "npm run db:generate -w @oschat/server",
-    "db:migrate": "npm run db:migrate -w @oschat/server",
-    "db:push": "npm run db:push -w @oschat/server",
-    "db:studio": "npm run db:studio -w @oschat/server",
-    "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down",
-    "docker:dev": "docker compose -f docker-compose.dev.yml up -d"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "db:generate": "cd apps/api && npx prisma generate",
+    "db:push": "cd apps/api && npx prisma db push",
+    "db:studio": "cd apps/api && npx prisma studio"
   },
-  "keywords": ["chat", "socket.io", "real-time", "nextjs", "fastify", "typescript"],
-  "author": "demonkiller",
-  "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=9.0.0"
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
   }
 }
-
